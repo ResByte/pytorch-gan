@@ -11,3 +11,7 @@ Modified and example codes of GAN in pytorch. Parts of the orginal code from pyt
 ## DCGAN
 To run dcgan on cifar10 dataset
 `python dcgan_pytorch.py --dataset cifar10 --dataroot ./data/cifar10`
+
+## AEGAN(AutoEncoder GAN)
+
+`python ae_gan.py --dataset cifar10 --dataroot ./data/cifar10 --cuda --batchSize 16`
