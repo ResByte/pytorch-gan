@@ -14,6 +14,7 @@ import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
 import visdom
+import numpy as np
 
 
 parser = argparse.ArgumentParser()
@@ -194,19 +195,19 @@ class _netE(nn.Module):
         self.main = nn.Sequential(
             # input is (nc) x 64 x 64
             nn.Conv2d(nc, ndf, 4, 2, 1, bias=False),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.ReLU(True),
             # state size. (ndf) x 32 x 32
             nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
             nn.BatchNorm2d(ndf * 2),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.ReLU(True),
             # state size. (ndf*2) x 16 x 16
             nn.Conv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=False),
             nn.BatchNorm2d(ndf * 4),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.ReLU(True),
             # state size. (ndf*4) x 8 x 8
             nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
             nn.BatchNorm2d(ndf * 8),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.ReLU(True),
             # state size. (ndf*8) x 4 x 4
             # nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
             # nn.Sigmoid()
@@ -235,10 +236,13 @@ netE.apply(weights_init)
 print(netE)
 
 
-
+# LOSSES
 criterion1 = nn.BCELoss()
-#criterion = nn.BCEWithLogitsLoss()
-criterion2 = nn.MSELoss()
+#criterion1 = nn.BCEWithLogitsLoss()
+criterion2 = nn.MSELoss(size_average=True)
+
+
+# VARIABLES
 input = torch.FloatTensor(opt.batchSize, 3, opt.imageSize, opt.imageSize)
 noise = torch.FloatTensor(opt.batchSize, nz, 1, 1)
 fixed_noise = torch.FloatTensor(opt.batchSize, nz, 1, 1).normal_(0, 1)
@@ -246,12 +250,15 @@ label = torch.FloatTensor(opt.batchSize)
 real_label = 1
 fake_label = 0
 
+sample_x,_ = next(iter(dataloader))
+#SET CUDA
 if opt.cuda:
     netD.cuda()
     netG.cuda()
     netE.cuda()
     criterion1.cuda()
     criterion2.cuda()
+    sample_x = sample_x.cuda()
     input, label = input.cuda(), label.cuda()
     noise, fixed_noise = noise.cuda(), fixed_noise.cuda()
 
@@ -328,8 +335,8 @@ for epoch in range(opt.niter):
         netG.zero_grad()
         netE.zero_grad()
         # inputv = Variable(input)
-        hiddenz = netE(inputv)
-        recons = netG(hiddenz.view(-1, nz, 1, 1))
+        hiddenz = netE(inputv) # encode
+        recons = netG(hiddenz.view(-1, nz, 1, 1)) # decode
         errAE = criterion2(recons, inputv)
         errAE.backward()
         optimizerAE.step()
@@ -349,15 +356,22 @@ for epoch in range(opt.niter):
             # vutils.save_image(real_cpu,
             #         '%s/real_samples.png' % opt.outf,
             #         normalize=True)
-            #z_dim = netAE(inputv)
-            fake = netG(fixed_noise)
+            # rand_int = np.random.random_integers(len(dataset))
+            # sample_x = dataset[rand_int][0]
             
-            #recon_im = net
+            # if opt.cuda:
+            #     sample_x = sample_x.cuda().view(-1,3, opt.imageSize, opt.imageSize)
+            z_dim = netE(Variable(sample_x))
+            fake = netG(z_dim.view(-1, nz, 1,1))
             
-            grid = vutils.make_grid(fake.cpu().data)
+            # noise image 
+            noise_im = netG(fixed_noise)
+            #recon_im = net.view(3,opt.imageSize, opt.imageSize)
+            
+            grid = vutils.make_grid(torch.cat([sample_x.cpu(),fake.cpu().data, noise_im.cpu().data], dim=2))
             ndarr = grid.mul(255).clamp(0, 255).byte().numpy()
 
-            vis.image(ndarr)
+            vis.image(ndarr, opts=dict(title='Recons', caption='Epoch {} iter {}'.format(epoch, i)))
             # vutils.save_image(fake.data,
             #         '%s/fake_samples_epoch_%03d.png' % (opt.outf, epoch),
             #         normalize=True)
