@@ -330,7 +330,7 @@ for epoch in range(opt.niter):
         
         
         ############################
-        # (2) Update E+G network: 
+        # (3) Update E+G network: 
         ###########################
         netG.zero_grad()
         netE.zero_grad()
