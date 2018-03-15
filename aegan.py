@@ -238,7 +238,6 @@ print(netE)
 
 # LOSSES
 criterion1 = nn.BCELoss()
-#criterion1 = nn.BCEWithLogitsLoss()
 criterion2 = nn.MSELoss(size_average=True)
 
 
@@ -269,6 +268,7 @@ optimizerD = optim.Adam(netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 optimizerG = optim.Adam(netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 optimizerAE = optim.Adam(list(netE.parameters()) + list(netG.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
 
+# setup visdom server
 vis = visdom.Visdom()
 lot = vis.line(
             X=torch.zeros((1,)).cpu(),
@@ -279,13 +279,16 @@ lot = vis.line(
                 title='Current Losses',
                 legend=['Gen Loss', 'Disc Loss', 'AE loss']
         ) )
+
+# training loop 
+# initialize counter
 count = 0
 for epoch in range(opt.niter):
     for i, data in enumerate(dataloader, 0):
         count +=1
-        ############################
+        
         # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
-        ###########################
+        
         # train with real
         netD.zero_grad()
         real_cpu, _ = data
@@ -294,6 +297,7 @@ for epoch in range(opt.niter):
             real_cpu = real_cpu.cuda()
         input.resize_as_(real_cpu).copy_(real_cpu)
         label.resize_(batch_size).fill_(real_label)
+        
         inputv = Variable(input)
         labelv = Variable(label)
 
