@@ -55,19 +55,9 @@ if opt.cuda:
 criterion = nn.BCELoss()
 
 # variables 
-# input = torch.FloatTensor(opt.batchSize, 3, opt.imageSize, opt.imageSize)
-# noise = torch.FloatTensor(opt.batchSize, nz, 1, 1)
 fixed_noise = torch.FloatTensor(opt.batchSize, nz, 1, 1).normal_(0, 1)
-# label = torch.FloatTensor(opt.batchSize)
-# real_label = 1
-# fake_label = 0
-
 # use cuda 
 if opt.cuda:
-#     netD.cuda()
-#     netG.cuda()
-#     criterion.cuda()
-#     input, label = input.cuda(), label.cuda()
     fixed_noise = fixed_noise.cuda()
 
 fixed_noise = Variable(fixed_noise)
@@ -137,8 +127,7 @@ for epoch in range(opt.niter):
         ############################
         # (2) Update G network: maximize log(D(G(z)))
         ###########################
-#         netG.zero_grad()
-#         labelv = Variable(label.fill_(real_label))  # fake labels are real for generator cost
+
         optimizerG.zero_grad()
         
         # sample new noise
