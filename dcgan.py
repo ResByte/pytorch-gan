@@ -18,19 +18,19 @@ import visdom
 from networks import _netG, _netD
 from utils import *
 
-
+# setup config for parameters
 opt = config()
 
-
+# create dataset loader 
 dataset = get_dataset(opt)
 dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batchSize,
                                          shuffle=True, num_workers=int(opt.workers))
 
 ngpu = int(opt.ngpu)      # number of gpus 
 nz = int(opt.nz)          # z dimensions
-ngf = int(opt.ngf)        # generator filter number
-ndf = int(opt.ndf)        # discrimintator filter number 
-nc = 3                    # image channels 
+ngf = int(opt.ngf)        # generator filter size
+ndf = int(opt.ndf)        # discrimintator filter size 
+nc = 3                    # dataset image channels 
 
 # setup Generator 
 netG = _netG(ngpu, nz, ngf, nc)
@@ -46,26 +46,28 @@ if opt.netD != '':
     netD.load_state_dict(torch.load(opt.netD))
 print(netD)
 
+# TODO: update according to v0.4
 if opt.cuda:
     netD = netD.cuda()
     netG = netG.cuda()
     
-
-# loss 
+# loss used is Binary x-entropy
 criterion = nn.BCELoss()
 
 # variables 
 fixed_noise = torch.FloatTensor(opt.batchSize, nz, 1, 1).normal_(0, 1)
-# use cuda 
+
+# TODO: update according to v0.4 
 if opt.cuda:
     fixed_noise = fixed_noise.cuda()
 
 fixed_noise = Variable(fixed_noise)
 
-# setup optimizer
+# setup optimizer, Adam for faster convergence
 optimizerD = optim.Adam(netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 optimizerG = optim.Adam(netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
+# visdom is used for visualization of results
 vis = visdom.Visdom()
 lot = vis.line(
             X=torch.zeros((1,)).cpu(),
@@ -76,6 +78,8 @@ lot = vis.line(
                 title='Current Losses',
                 legend=['Gen Loss', 'Disc Loss']
         ) )
+
+# training loop
 count = 0
 for epoch in range(opt.niter):
     for i, (inputs, targets) in enumerate(dataloader, 0):
