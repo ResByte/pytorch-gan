@@ -1,8 +1,18 @@
+"""
+Neural network definition for both Generator and discriminator
+"""
 import torch 
 import torch.nn as nn 
 import torch.nn.functional as F 
 
 class _netG(nn.Module):
+    """Generator network class. 
+    params:
+        - ngpu : number of gpus to be used 
+        - nz : input noise dimension 
+        - ngf : number of filters 
+        - nc : output image channels
+    """
     def __init__(self, ngpu, nz, ngf, nc):
         super(_netG, self).__init__()
         self.ngpu = ngpu
@@ -38,6 +48,12 @@ class _netG(nn.Module):
         return output
     
 class _netD(nn.Module):
+    """Disciminator neural network
+    params:
+        - ngpu : number of gpu 
+        - ndf : number of discriminator 
+        - nc : number of channels for input image
+    """
     def __init__(self, ngpu,ndf, nc):
         super(_netD, self).__init__()
         self.ngpu = ngpu
