@@ -2,7 +2,7 @@
 Modified and example codes of GAN in pytorch. Parts of the orginal code from pytorch/examples are modified for easier experimentation.
 
 ## Dependencies
-- pytorch>=0.2.0
+- pytorch>=0.4.0
 - torchvision
 - visdom
 - numpy
