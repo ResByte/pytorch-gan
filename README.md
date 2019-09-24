@@ -17,4 +17,4 @@ To run dcgan on cifar10 dataset
 
 
 ## Colab
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ResByte/pytorch-gan/dcgan_notebook.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ResByte/pytorch-gan/blob/master/dcgan_notebook.ipynb)
